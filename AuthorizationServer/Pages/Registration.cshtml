@@ -1,0 +1,30 @@
+﻿@page
+@model RegistrationModel
+@{
+    ViewData["Title"] = "Register";
+}
+
+<h1>Register</h1>
+
+<form method="post">
+    <div asp-validation-summary="All"></div>
+
+    <div>
+        <label asp-for="Input.UserName"></label>
+        <input asp-for="Input.UserName" />
+        <span asp-validation-for="Input.UserName"></span>
+    </div>
+    <div>
+        <label asp-for="Input.Password"></label>
+        <input asp-for="Input.Password" type="password" />
+        <span asp-validation-for="Input.Password"></span>
+    </div>
+
+    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+
+    <button type="submit">Register</button>
+</form>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
