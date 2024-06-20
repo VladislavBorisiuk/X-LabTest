@@ -23,7 +23,6 @@ builder.Services.AddIdentity<Person, IdentityRole>()
     .AddDefaultTokenProviders();
 
 builder.Services.AddOpenIddict()
-
     .AddCore(options =>
     {
         options.UseEntityFrameworkCore()
@@ -35,7 +34,10 @@ builder.Services.AddOpenIddict()
                .SetLogoutEndpointUris("connect/logout")
                .SetTokenEndpointUris("connect/token");
 
-        options.AllowAuthorizationCodeFlow();
+        // Разрешаем различные потоки (flows), включая Authorization Code, Client Credentials и Refresh Token.
+        options.AllowAuthorizationCodeFlow()
+               .AllowClientCredentialsFlow()
+               .AllowRefreshTokenFlow();
 
         options.AddDevelopmentEncryptionCertificate()
                .AddDevelopmentSigningCertificate();

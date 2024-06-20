@@ -59,6 +59,8 @@ namespace AuthorizationServer.Controllers
 
             var parameters = _authService.ParceOAuthParameters(HttpContext);
 
+            var Users = _userManager.Users.ToList(); 
+
             if (IsAuthentificated)
             {
                 return Challenge(
@@ -206,58 +208,67 @@ namespace AuthorizationServer.Controllers
         }
 
         [HttpPost("~/connect/token"), Produces("application/json")]
-            public async Task<IActionResult> Exchange()
+        public async Task<IActionResult> Exchange()
+        {
+            var request = HttpContext.GetOpenIddictServerRequest() ??
+                throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
+
+            ClaimsPrincipal claimsPrincipal;
+
+            if (request.IsAuthorizationCodeGrantType())
             {
-                var request = HttpContext.GetOpenIddictServerRequest() ??
-                    throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
-
-                if (request.IsAuthorizationCodeGrantType() || request.IsRefreshTokenGrantType())
-                {
-
-                    var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-
-                    var user = await _userManager.FindByIdAsync(result.Principal.GetClaim(Claims.Subject));
-                    if (user is null)
-                    {
-                        return Forbid(
-                            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                            properties: new AuthenticationProperties(new Dictionary<string, string>
-                            {
-                                [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The token is no longer valid."
-                            }));
-                    }
-
-                    // Ensure the user is still allowed to sign in.
-                    if (!await _signInManager.CanSignInAsync(user))
-                    {
-                        return Forbid(
-                            authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
-                            properties: new AuthenticationProperties(new Dictionary<string, string>
-                            {
-                                [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
-                                [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The user is no longer allowed to sign in."
-                            }));
-                    }
-
-                    var identity = new ClaimsIdentity(result.Principal.Claims,
-                        authenticationType: TokenValidationParameters.DefaultAuthenticationType,
-                        nameType: Claims.Name,
-                        roleType: Claims.Role);
-
-                    identity.SetClaim(Claims.Subject, await _userManager.GetUserIdAsync(user))
-                            .SetClaim(Claims.Email, await _userManager.GetEmailAsync(user))
-                            .SetClaim(Claims.Name, await _userManager.GetUserNameAsync(user))
-                            .SetClaim(Claims.PreferredUsername, await _userManager.GetUserNameAsync(user))
-                            .SetClaims(Claims.Role, [.. (await _userManager.GetRolesAsync(user))]);
-
-                    identity.SetDestinations(AuthService.GetDestinations);
-
-                    return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
-                }
-
+                // Handle the authorization code grant type
+                claimsPrincipal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+            }
+            else if (request.IsRefreshTokenGrantType())
+            {
+                // Handle the refresh token grant type
+                claimsPrincipal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+            }
+            else
+            {
                 throw new InvalidOperationException("The specified grant type is not supported.");
             }
+
+            var user = await _userManager.FindByIdAsync(claimsPrincipal.GetClaim(Claims.Subject));
+            if (user is null)
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string>
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The token is no longer valid."
+                    }));
+            }
+
+            if (!await _signInManager.CanSignInAsync(user))
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string>
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The user is no longer allowed to sign in."
+                    }));
+            }
+
+            var identity = new ClaimsIdentity(claimsPrincipal.Claims,
+                authenticationType: TokenValidationParameters.DefaultAuthenticationType,
+                nameType: Claims.Name,
+                roleType: Claims.Role);
+
+            identity.SetClaim(Claims.Subject, await _userManager.GetUserIdAsync(user))
+                    .SetClaim(Claims.Email, await _userManager.GetEmailAsync(user))
+                    .SetClaim(Claims.Name, await _userManager.GetUserNameAsync(user))
+                    .SetClaim(Claims.PreferredUsername, await _userManager.GetUserNameAsync(user))
+                    .SetClaims(Claims.Role, new List<string> { "user", "admin" }.ToImmutableArray());
+
+            identity.SetDestinations(AuthService.GetDestinations);
+
+            return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
 
         [HttpPost("~/connect/logout"), ValidateAntiForgeryToken]
         public async Task<IActionResult> LogoutPost()

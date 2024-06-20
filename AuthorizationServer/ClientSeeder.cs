@@ -21,7 +21,7 @@ namespace AuthorizationServer
 
             var apiScope = await manager.FindByNameAsync("api1");
 
-            if(apiScope != null)
+            if (apiScope != null)
             {
                 await manager.DeleteAsync(apiScope);
             }
@@ -30,7 +30,7 @@ namespace AuthorizationServer
             {
                 DisplayName = "Api scope",
                 Name = "api1",
-                Resources=
+                Resources =
                 {
                     "resource_server_1"
                 }
@@ -49,7 +49,7 @@ namespace AuthorizationServer
 
             var client = await manager.FindByClientIdAsync("web-client");
 
-            if(client != null)
+            if (client != null)
             {
                 await manager.DeleteAsync(client);
             }
@@ -74,6 +74,8 @@ namespace AuthorizationServer
                     Permissions.Endpoints.Logout,
                     Permissions.Endpoints.Token,
                     Permissions.GrantTypes.AuthorizationCode,
+                    Permissions.GrantTypes.ClientCredentials,
+                    Permissions.GrantTypes.RefreshToken,
                     Permissions.ResponseTypes.Code,
                     Permissions.Scopes.Email,
                     Permissions.Scopes.Profile,

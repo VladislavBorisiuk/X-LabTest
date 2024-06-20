@@ -19,8 +19,7 @@
         <input asp-for="Input.Password" type="password" />
         <span asp-validation-for="Input.Password"></span>
     </div>
-
-    <input type="hidden" name="returnUrl" value="@ViewData["ReturnUrl"]" />
+    <input type="hidden" name="returnUrl" value="@Model.ReturnUrl" />
 
     <button type="submit">Register</button>
 </form>
