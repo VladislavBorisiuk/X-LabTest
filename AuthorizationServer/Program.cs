@@ -6,6 +6,8 @@ using X_LabDataBase.Context;
 using Microsoft.AspNetCore.Identity;
 using OpenIddict.Abstractions;
 using X_LabDataBase.Entityes;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,7 +16,7 @@ builder.Services.AddRazorPages();
 
 builder.Services.AddDbContext<DataBaseContext>(options =>
 {
-    options.UseSqlite($"Filename={Path.Combine(Path.GetTempPath(), "b.sqlite3")}");
+    options.UseSqlite($"Filename={Path.Combine(Path.GetTempPath(), "openiddict-velusia-client.sqlite3")}");
     options.UseOpenIddict();
 });
 
@@ -39,6 +41,8 @@ builder.Services.AddOpenIddict()
                .AllowClientCredentialsFlow()
                .AllowRefreshTokenFlow();
 
+        options.DisableAccessTokenEncryption();
+
         options.AddDevelopmentEncryptionCertificate()
                .AddDevelopmentSigningCertificate();
 
@@ -58,6 +62,15 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     {
         c.LoginPath = "/Authenticate";
     });
+
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("Cookies", policy =>
+    {
+        policy.AddAuthenticationSchemes(CookieAuthenticationDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+    });
+});
 
 builder.Services.AddTransient<ClientSeeder>();
 builder.Services.AddScoped<UserManager<Person>>();
@@ -90,7 +103,13 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseDeveloperExceptionPage();
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+}
+
+app.UseHttpsRedirection();
+app.UseStaticFiles();
 
 app.UseRouting();
 app.UseCors("AllowAll");
@@ -98,18 +117,12 @@ app.UseCors("AllowAll");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseEndpoints(options =>
+app.UseEndpoints(endpoints =>
 {
-    options.MapControllers();
-    options.MapDefaultControllerRoute();
+    endpoints.MapControllers();
+    endpoints.MapDefaultControllerRoute();
+    endpoints.MapRazorPages();
 });
-app.UseHttpsRedirection();
-app.UseStaticFiles();
-
-app.UseRouting();
-
-app.UseAuthorization();
-app.MapControllers();
-app.MapRazorPages();
 
 app.Run();
+

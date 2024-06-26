@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -36,7 +37,9 @@ builder.Services.AddDbContext<DataBaseContext>(options =>
         options.UseAspNetCore();
     });
 
-
+builder.Services.AddIdentity<Person, IdentityRole>()
+        .AddEntityFrameworkStores<DataBaseContext>()
+        .AddDefaultTokenProviders();
 
 
 builder.Services.AddControllers();
@@ -88,8 +91,6 @@ app.UseSwaggerUI(c =>
 app.UseDeveloperExceptionPage();
 
 app.UseRouting();
-app.UseCors();
-
 app.UseAuthentication();
 app.UseAuthorization();
 
@@ -99,9 +100,6 @@ app.UseEndpoints(options =>
     options.MapDefaultControllerRoute();
 });
 app.UseHttpsRedirection();
-app.UseRouting();
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 
 app.Run();

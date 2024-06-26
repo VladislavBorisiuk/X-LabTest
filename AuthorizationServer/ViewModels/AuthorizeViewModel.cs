@@ -2,7 +2,6 @@
 
 namespace AuthorizationServer.ViewModels
 {
-
     public class AuthorizeViewModel
     {
         [Display(Name = "Application")]

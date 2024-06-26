@@ -18,17 +18,36 @@ namespace AuthorizationServer.Services
 
         public bool IsAuthenticated(AuthenticateResult result, OpenIddictRequest request)
         {
-            if (result == null || !result.Succeeded || request.HasPrompt(Prompts.Login) ||
-                (request.MaxAge != null && result.Properties?.IssuedUtc != null &&
-                 DateTimeOffset.UtcNow - result.Properties.IssuedUtc > TimeSpan.FromSeconds(request.MaxAge.Value)))
-            {
-
-                return true;
-            }
-            else
+            if(!result.Succeeded)
             {
                 return false;
             }
+
+            if(request.MaxAge.HasValue && result.Properties != null)
+            {
+                var maxSeconds = TimeSpan.FromSeconds(request.MaxAge.Value);    
+
+                var expire = !result.Properties.IssuedUtc.HasValue ||
+                    DateTimeOffset.UtcNow - result.Properties.IssuedUtc > maxSeconds;
+
+                if(expire)
+                {
+                    return false;
+                }
+            }
+            /*if (result == null || !result.Succeeded || request.HasPrompt(Prompts.Login) ||
+                (request.MaxAge != null && result.Properties?.IssuedUtc != null ||
+                 DateTimeOffset.UtcNow - result.Properties.IssuedUtc > TimeSpan.FromSeconds(request.MaxAge.Value)))
+            {
+
+                return false;
+            }
+            else
+            {
+                return true;
+            }*/
+
+            return true;
         }
 
         public IDictionary<string, StringValues> ParceOAuthParameters(HttpContext httpContext)
