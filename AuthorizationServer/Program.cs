@@ -36,7 +36,6 @@ builder.Services.AddOpenIddict()
                .SetLogoutEndpointUris("connect/logout")
                .SetTokenEndpointUris("connect/token");
 
-        // Разрешаем различные потоки (flows), включая Authorization Code, Client Credentials и Refresh Token.
         options.AllowAuthorizationCodeFlow()
                .AllowClientCredentialsFlow()
                .AllowRefreshTokenFlow();

@@ -1,59 +1,55 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using X_LabDataBase.Entityes;
 using X_LabTest.Models;
 
-namespace X_LabTest.Controllers
+[ApiController]
+[Route("resources")]
+[Authorize]
+public class ResourceController : ControllerBase
 {
-    [ApiController]
-    [Route("resources")]
-    public class ResourceController : ControllerBase
+    private readonly UserManager<Person> _userManager;
+
+    public ResourceController(UserManager<Person> userManager)
     {
-        private readonly UserManager<Person> _userManager;
+        _userManager = userManager;
+    }
 
-        public ResourceController(UserManager<Person> userManager)
+    [HttpGet]
+    public IActionResult GetUsers()
+    {
+        var users = _userManager.Users.ToList();
+        string userList = "";
+        foreach (var user in users)
         {
-            _userManager = userManager;
+            userList = userList + $"Имя пользователя: {user.UserName} Пароль пользователя {user.PasswordHash} \n";
         }
+        return Ok($"users: {userList}");
+    }
 
-        [Authorize]
-        [HttpGet]
-        public IActionResult Get()
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] PersonDTO model)
+    {
+        if (ModelState.IsValid)
         {
-            var users = _userManager.Users.ToList();
-            string userList = "";
-            foreach (var user in users)
+            var user = new Person
             {
-                userList = userList + $"Имя пользователя: {user.UserName} Пароль пользователя {user.PasswordHash} \n";
-            }
-            return Ok($"users: {userList}");
-        }
-        [HttpPost("register")]
-        public async Task<IActionResult> Register([FromBody] PersonDTO model)
-        {
-            if (ModelState.IsValid)
+                UserName = model.Login,
+            };
+
+            var result = await _userManager.CreateAsync(user, model.Password);
+
+            if (result.Succeeded)
             {
-                var user = new Person
-                {
-                    UserName = model.Login,
-                };
-
-                var result = await _userManager.CreateAsync(user, model.Password);
-
-                if (result.Succeeded)
-                {
-                    return Ok("Пользователь успешно зарегистрирован");
-                }
-                else
-                {
-                    return BadRequest(result.Errors);
-                }
+                return Ok("Пользователь успешно зарегистрирован");
             }
-            return BadRequest("Invalid model");
+            else
+            {
+                return BadRequest(result.Errors);
+            }
         }
-
-
+        return BadRequest("Invalid model");
     }
 }

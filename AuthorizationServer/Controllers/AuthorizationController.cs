@@ -234,7 +234,7 @@ namespace AuthorizationServer.Controllers
             }
             else if (request.IsRefreshTokenGrantType())
             {
-                claimsPrincipal = (await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme)).Principal;
+                return await HandleRefreshTokenAsync(request);
             }
             else
             {
@@ -243,8 +243,6 @@ namespace AuthorizationServer.Controllers
 
             var user = await _userManager.FindByIdAsync(claimsPrincipal.GetClaim(Claims.Subject));
 
-            var application = await _applicationManager.FindByClientIdAsync(request.ClientId) ??
-                throw new InvalidOperationException("Details concerning the calling client application cannot be found.");
             if (user is null)
             {
                 return Forbid(
@@ -280,6 +278,75 @@ namespace AuthorizationServer.Controllers
             identity.SetScopes(request.GetScopes());
             identity.SetResources(await _scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
 
+            var application = await _applicationManager.FindByClientIdAsync(request.ClientId) ??
+                throw new InvalidOperationException("Details concerning the calling client application cannot be found.");
+
+            var authorizations = await _authorizationManager.FindAsync(
+                subject: await _userManager.GetUserIdAsync(user),
+                client: await _applicationManager.GetIdAsync(application),
+                status: Statuses.Valid,
+                type: AuthorizationTypes.Permanent,
+                scopes: request.GetScopes()).ToListAsync();
+
+            var authorization = authorizations.LastOrDefault();
+
+            authorization ??= await _authorizationManager.CreateAsync(
+                identity: identity,
+                subject: await _userManager.GetUserIdAsync(user),
+                client: await _applicationManager.GetIdAsync(application),
+                type: AuthorizationTypes.Permanent,
+                scopes: identity.GetScopes());
+
+            identity.SetAuthorizationId(await _authorizationManager.GetIdAsync(authorization));
+            identity.SetDestinations(AuthService.GetDestinations);
+
+            return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+        }
+
+        private async Task<IActionResult> HandleRefreshTokenAsync(OpenIddictRequest request)
+        {
+            var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            var claimsPrincipal = result.Principal;
+
+            var user = await _userManager.FindByIdAsync(claimsPrincipal.GetClaim(Claims.Subject));
+
+            if (user is null)
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string>
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The token is no longer valid."
+                    }));
+            }
+
+            if (!await _signInManager.CanSignInAsync(user))
+            {
+                return Forbid(
+                    authenticationSchemes: OpenIddictServerAspNetCoreDefaults.AuthenticationScheme,
+                    properties: new AuthenticationProperties(new Dictionary<string, string>
+                    {
+                        [OpenIddictServerAspNetCoreConstants.Properties.Error] = Errors.InvalidGrant,
+                        [OpenIddictServerAspNetCoreConstants.Properties.ErrorDescription] = "The user is no longer allowed to sign in."
+                    }));
+            }
+
+            var identity = new ClaimsIdentity(claimsPrincipal.Claims,
+                authenticationType: TokenValidationParameters.DefaultAuthenticationType,
+                nameType: Claims.Name,
+                roleType: Claims.Role);
+
+            identity.SetClaim(Claims.Subject, await _userManager.GetUserIdAsync(user))
+                    .SetClaim(Claims.Email, await _userManager.GetEmailAsync(user))
+                    .SetClaim(Claims.Name, await _userManager.GetUserNameAsync(user))
+                    .SetClaims(Claims.Role, new List<string> { "user", "admin" }.ToImmutableArray());
+
+            identity.SetScopes(request.GetScopes());
+            identity.SetResources(await _scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
+
+            var application = await _applicationManager.FindByClientIdAsync(request.ClientId) ??
+                throw new InvalidOperationException("Details concerning the calling client application cannot be found.");
 
             var authorizations = await _authorizationManager.FindAsync(
                 subject: await _userManager.GetUserIdAsync(user),

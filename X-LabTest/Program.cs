@@ -1,18 +1,10 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-using OpenIddict.Abstractions;
-using OpenIddict.Client;
-using OpenIddict.Validation.AspNetCore;
-using System.Security.Claims;
-using System.Text;
 using X_LabDataBase.Context;
 using X_LabDataBase.Entityes;
-using static OpenIddict.Abstractions.OpenIddictConstants;
-using static OpenIddict.Abstractions.OpenIddictConstants;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -75,7 +67,13 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddAuthentication(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+}).AddCookie();
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -91,6 +89,7 @@ app.UseSwaggerUI(c =>
 app.UseDeveloperExceptionPage();
 
 app.UseRouting();
+
 app.UseAuthentication();
 app.UseAuthorization();
 
