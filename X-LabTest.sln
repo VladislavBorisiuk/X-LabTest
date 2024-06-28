@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "X-LabDataBase", "X-LabDataB
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AuthorizationServer", "AuthorizationServer\AuthorizationServer.csproj", "{3F394DB5-4362-479F-9F1E-8F1958F88F55}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LabXUnitTest", "LabXUnitTest\LabXUnitTest.csproj", "{0E562A4C-8349-4342-B173-AF07F57A2755}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{3F394DB5-4362-479F-9F1E-8F1958F88F55}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3F394DB5-4362-479F-9F1E-8F1958F88F55}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3F394DB5-4362-479F-9F1E-8F1958F88F55}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0E562A4C-8349-4342-B173-AF07F57A2755}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0E562A4C-8349-4342-B173-AF07F57A2755}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0E562A4C-8349-4342-B173-AF07F57A2755}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0E562A4C-8349-4342-B173-AF07F57A2755}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
