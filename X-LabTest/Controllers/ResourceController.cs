@@ -1,21 +1,27 @@
-﻿using Microsoft.AspNetCore.Authentication.Cookies;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using OpenIddict.Abstractions;
+using OpenIddict.Server.AspNetCore;
 using X_LabDataBase.Entityes;
 using X_LabTest.Models;
+using System.Threading.Tasks;
+using System.Linq;
 
 [ApiController]
 [Route("resources")]
-
 public class ResourceController : ControllerBase
 {
     private readonly UserManager<Person> _userManager;
 
-    public ResourceController(UserManager<Person> userManager)
+    public ResourceController(
+        UserManager<Person> userManager)
     {
         _userManager = userManager;
     }
+
     [Authorize]
     [HttpGet]
     public IActionResult Get()
