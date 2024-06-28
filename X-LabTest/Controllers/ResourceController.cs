@@ -7,7 +7,7 @@ using X_LabTest.Models;
 
 [ApiController]
 [Route("resources")]
-[Authorize]
+
 public class ResourceController : ControllerBase
 {
     private readonly UserManager<Person> _userManager;
@@ -16,15 +16,15 @@ public class ResourceController : ControllerBase
     {
         _userManager = userManager;
     }
-
+    [Authorize]
     [HttpGet]
-    public IActionResult GetUsers()
+    public IActionResult Get()
     {
         var users = _userManager.Users.ToList();
         string userList = "";
         foreach (var user in users)
         {
-            userList = userList + $"Имя пользователя: {user.UserName} Пароль пользователя {user.PasswordHash} \n";
+            userList += $"Имя пользователя: {user.UserName} Пароль пользователя {user.PasswordHash} \n";
         }
         return Ok($"users: {userList}");
     }

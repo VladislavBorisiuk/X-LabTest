@@ -60,7 +60,7 @@ builder.Services.AddSwaggerGen(c =>
         {
             new OpenApiSecurityScheme
             {
-                Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id="pauth2"}
+                Reference = new OpenApiReference {Type = ReferenceType.SecurityScheme, Id="oauth2"}
             },
             Array.Empty<string>()
         }
@@ -68,12 +68,8 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 
-builder.Services.AddAuthentication(options =>
-{
-    options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-}).AddCookie();
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie();
 builder.Services.AddAuthorization();
 
 var app = builder.Build();
@@ -86,18 +82,10 @@ app.UseSwaggerUI(c =>
 });
 
 
-app.UseDeveloperExceptionPage();
-
-app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseEndpoints(options =>
-{
-    options.MapControllers();
-    options.MapDefaultControllerRoute();
-});
 app.UseHttpsRedirection();
 app.MapControllers();
 
