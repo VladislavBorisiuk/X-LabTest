@@ -30,6 +30,12 @@ builder.Services.AddIdentity<Person, IdentityRole>()
 
 // Настройка OpenIddict
 builder.Services.AddOpenIddict()
+    .AddCore(options =>
+    {
+        options.UseEntityFrameworkCore()
+               .UseDbContext<DataBaseContext>();
+    });
+    builder.Services.AddOpenIddict()
     .AddServer(options =>
     {
         options.SetTokenEndpointUris("/connect/token");
@@ -43,8 +49,7 @@ builder.Services.AddOpenIddict()
     })
     .AddValidation(options =>
     {
-
-        options.SetIssuer("https://localhost:7169/");
+        options.SetIssuer("https://localhost:7168/");
         options.AddAudiences("resource_server_1");
 
         options.AddEncryptionKey(new SymmetricSecurityKey(
@@ -54,6 +59,7 @@ builder.Services.AddOpenIddict()
 
         options.UseAspNetCore();
     });
+
 
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
@@ -89,17 +95,32 @@ builder.Services.AddSwaggerGen(c =>
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultAuthenticateScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme;
 })
 .AddJwtBearer(options =>
 {
-    options.Authority = "https://localhost:7169/";
+    options.Authority = "https://localhost:7168/";
     options.Audience = "resource_server_1";
+    options.RequireHttpsMetadata = false;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidIssuer = "https://localhost:7168/",
+        ValidateAudience = true,
+        ValidAudience = "resource_server_1",
+        ValidateLifetime = true
+    };
 });
 
-
-builder.Services.AddAuthorization();
-
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("DefaultPolicy", policy =>
+    {
+        policy.AuthenticationSchemes.Add(OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme);
+        policy.RequireAuthenticatedUser();
+    });
+});
 
 builder.Services.AddCors(options =>
 {

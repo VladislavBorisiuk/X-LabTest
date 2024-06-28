@@ -9,6 +9,7 @@ using X_LabDataBase.Entityes;
 using X_LabTest.Models;
 using System.Threading.Tasks;
 using System.Linq;
+using OpenIddict.Validation.AspNetCore;
 
 [ApiController]
 [Route("resources")]
@@ -22,7 +23,7 @@ public class ResourceController : ControllerBase
         _userManager = userManager;
     }
 
-    [Authorize]
+    [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     [HttpGet]
     public IActionResult Get()
     {
