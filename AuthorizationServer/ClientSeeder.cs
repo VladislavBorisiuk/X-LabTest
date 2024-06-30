@@ -91,6 +91,7 @@ namespace AuthorizationServer
                         Permissions.GrantTypes.RefreshToken,
                         Permissions.GrantTypes.Password,
                         Permissions.ResponseTypes.Code,
+                        
                         Permissions.Scopes.Profile,
                         Permissions.Scopes.Roles,
                         $"{Permissions.Prefixes.Scope}api1"

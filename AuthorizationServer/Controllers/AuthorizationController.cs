@@ -58,16 +58,21 @@ namespace AuthorizationServer.Controllers
         [HttpPost("~/connect/token")]
         public async Task<IActionResult> HandlePasswordGrantTypeAsync()
         {
-
             var request = HttpContext.GetOpenIddictServerRequest() ??
                 throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
 
-            var user = await _userManager.FindByNameAsync(request.Username) ??
-            throw new InvalidOperationException("The user details cannot be retrieved.");
+            if (!request.IsPasswordGrantType())
+            {
+                return BadRequest(new OpenIddictResponse
+                {
+                    Error = OpenIddictConstants.Errors.UnsupportedGrantType,
+                    ErrorDescription = "The specified grant type is not supported."
+                });
+            }
 
-            // Retrieve the application details from the database.
+            var user = await _userManager.FindByNameAsync(request.Username);
             var application = await _applicationManager.FindByClientIdAsync(request.ClientId) ??
-        throw new InvalidOperationException("Details concerning the calling client application cannot be found.");
+            throw new InvalidOperationException("Details concerning the calling client application cannot be found.");
 
             if (user == null || !await _userManager.CheckPasswordAsync(user, request.Password))
             {
@@ -87,17 +92,15 @@ namespace AuthorizationServer.Controllers
             scopes: request.GetScopes()).ToListAsync();
 
             var identity = new ClaimsIdentity(
-                        authenticationType: TokenValidationParameters.DefaultAuthenticationType,
-                        nameType: Claims.Name,
-                        roleType: Claims.Role);
-
+                authenticationType: TokenValidationParameters.DefaultAuthenticationType,
+                nameType: Claims.Name,
+                roleType: Claims.Role);
 
             identity.SetClaim(Claims.Subject, await _userManager.GetUserIdAsync(user))
                     .SetClaim(Claims.Email, await _userManager.GetEmailAsync(user))
                     .SetClaim(Claims.Name, await _userManager.GetUserNameAsync(user))
                     .SetClaim(Claims.PreferredUsername, await _userManager.GetUserNameAsync(user))
-                    .SetClaims(Claims.Role, [.. (await _userManager.GetRolesAsync(user))]);
-
+                    .SetClaims(Claims.Role, new List<string> { "user", "admin" }.ToImmutableArray());
 
             identity.SetScopes(request.GetScopes());
             identity.SetResources(await _scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
@@ -113,13 +116,27 @@ namespace AuthorizationServer.Controllers
             identity.SetAuthorizationId(await _authorizationManager.GetIdAsync(authorization));
             identity.SetDestinations(AuthService.GetDestinations);
 
-            return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
+            var principal = new ClaimsPrincipal(identity);
+            principal.SetScopes(request.GetScopes());
+            principal.SetResources(await _scopeManager.ListResourcesAsync(request.GetScopes()).ToListAsync());
+
+            return SignIn(principal, OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
+
 
         private async Task<IActionResult> HandleRefreshTokenAsync()
         {
             var request = HttpContext.GetOpenIddictServerRequest() ??
                 throw new InvalidOperationException("The OpenID Connect request cannot be retrieved.");
+
+            if (!request.IsPasswordGrantType())
+            {
+                return BadRequest(new OpenIddictResponse
+                {
+                    Error = OpenIddictConstants.Errors.UnsupportedGrantType,
+                    ErrorDescription = "The specified grant type is not supported."
+                });
+            }
 
             var result = await HttpContext.AuthenticateAsync(OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
             var claimsPrincipal = result.Principal;

@@ -15,20 +15,17 @@ using X_LabDataBase.Context;
 using X_LabDataBase.Entityes;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Настройка DbContext
+//поставить 30 секунд на рефреш
 builder.Services.AddDbContext<DataBaseContext>(options =>
 {
     options.UseSqlite($"Filename={Path.Combine(Path.GetTempPath(), "openiddict-velusia-client.sqlite3")}");
     options.UseOpenIddict();
 });
 
-// Настройка Identity
 builder.Services.AddIdentity<Person, IdentityRole>()
     .AddEntityFrameworkStores<DataBaseContext>()
     .AddDefaultTokenProviders();
 
-// Настройка OpenIddict
 builder.Services.AddOpenIddict()
     .AddCore(options =>
     {
@@ -40,6 +37,7 @@ builder.Services.AddOpenIddict()
     {
         options.SetTokenEndpointUris("/connect/token");
         options.AllowPasswordFlow();
+        options.AllowRefreshTokenFlow();
         options.UseAspNetCore()
                .EnableTokenEndpointPassthrough();
         options.AddDevelopmentSigningCertificate();

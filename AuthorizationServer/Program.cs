@@ -29,7 +29,7 @@ builder.Services.AddOpenIddict()
     })
     .AddServer(options =>
     {
-        options.SetAuthorizationEndpointUris("/connect/Authorize")
+        options.SetAuthorizationEndpointUris("/connect/authorize")
                .SetLogoutEndpointUris("/connect/logout")
                .SetTokenEndpointUris("/connect/token");
 
@@ -56,6 +56,7 @@ builder.Services.AddOpenIddict()
         options.UseLocalServer();
         options.UseAspNetCore();
     });
+
 
 builder.Services.AddCors(options =>
 {
