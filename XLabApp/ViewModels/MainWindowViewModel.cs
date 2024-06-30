@@ -29,9 +29,11 @@ namespace XLabApp.ViewModels
 
         #endregion
 
-        private string _CurrentToken = "";
+        private TokenResponse _TokenResponse;
 
-        public string CurrentToken { get => _CurrentToken; set => Set(ref _CurrentToken, value); }
+        public string CurrentToken { get => _TokenResponse.access_token; set => _TokenResponse.access_token = value; }
+
+        public string RefreshToken { get => _TokenResponse.refresh_token; set => _TokenResponse.refresh_token = value; }
 
         public string TokenData { get => _TokenData; set => Set(ref _TokenData, value); }
 
@@ -49,7 +51,7 @@ namespace XLabApp.ViewModels
 
         private string _Users = "";
 
-        #region
+        #region Пользователи
         private ICommand _GetUsersCommand;
 
         public ICommand GetUsersCommand => _GetUsersCommand
@@ -92,7 +94,6 @@ namespace XLabApp.ViewModels
             }
         }
         #endregion
-
         #region Авторизация
         private ICommand _AuthorizationCommand;
 
@@ -112,8 +113,12 @@ namespace XLabApp.ViewModels
                 };
                 var token_Stroke = await _DataService.AuthorizeUserAsync(person);
                 
-                CurrentToken = token_Stroke;
-                MessageBox.Show(token_Stroke);
+                if(token_Stroke != null)
+                {
+                    _TokenResponse = token_Stroke;
+                    OnPropertyChanged(nameof(RefreshToken));
+                    OnPropertyChanged(nameof(CurrentToken));
+                }
             }
             else
             {
@@ -121,9 +126,38 @@ namespace XLabApp.ViewModels
             }
         }
         #endregion
+        #region рефреш токен
+        private ICommand _RefreshTokenCommand;
+
+        public ICommand RefreshTokenCommand => _RefreshTokenCommand
+            ??= new LambdaCommandAsync(OnRefreshTokenCommandExecuted, CanRefreshTokenCommandExecute);
+
+        private bool CanRefreshTokenCommandExecute(object p) => p is string;
+
+        private async Task OnRefreshTokenCommandExecuted(object p)
+        {
+            if (p is string userId && !string.IsNullOrEmpty(userId))
+            {
+                var token = await _DataService.RefreshAccessTokenAsync(userId);
+                
+                if(token != null)
+                {
+                    _TokenResponse = token;
+                }
+            }
+        }
+
+        #endregion
         public MainWindowViewModel(IDataService DataService)
         {
             _DataService = DataService;
+            _TokenResponse = new TokenResponse()
+            {
+                access_token = "",
+                expires_in = 0,
+                refresh_token = "",
+                token_type = ""
+            };
         }
     }
 }

@@ -42,7 +42,6 @@ namespace AuthorizationServer
             }
             catch (Exception ex)
             {
-                // Handle or log exceptions appropriately
                 Console.WriteLine($"Error in AddScopes: {ex.Message}");
                 throw;
             }
@@ -70,7 +69,6 @@ namespace AuthorizationServer
                 await manager.CreateAsync(new OpenIddictApplicationDescriptor
                 {
                     ClientId = "web-client",
-                    ClientSecret = "901564A5-E7FE-42CB-B18D-61EF6A8F3654",
                     ConsentType = ConsentTypes.Explicit,
                     DisplayName = "Web Client Application",
                     RedirectUris =
@@ -89,9 +87,7 @@ namespace AuthorizationServer
                         Permissions.GrantTypes.AuthorizationCode,
                         Permissions.GrantTypes.ClientCredentials,
                         Permissions.GrantTypes.RefreshToken,
-                        Permissions.GrantTypes.Password,
-                        Permissions.ResponseTypes.Code,
-                        
+                        Permissions.GrantTypes.Password,           
                         Permissions.Scopes.Profile,
                         Permissions.Scopes.Roles,
                         $"{Permissions.Prefixes.Scope}api1"
@@ -100,7 +96,6 @@ namespace AuthorizationServer
             }
             catch (Exception ex)
             {
-                // Handle or log exceptions appropriately
                 Console.WriteLine($"Error in AddClients: {ex.Message}");
                 throw;
             }

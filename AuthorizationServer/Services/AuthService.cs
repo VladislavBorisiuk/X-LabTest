@@ -35,18 +35,6 @@ namespace AuthorizationServer.Services
                     return false;
                 }
             }
-            /*if (result == null || !result.Succeeded || request.HasPrompt(Prompts.Login) ||
-                (request.MaxAge != null && result.Properties?.IssuedUtc != null ||
-                 DateTimeOffset.UtcNow - result.Properties.IssuedUtc > TimeSpan.FromSeconds(request.MaxAge.Value)))
-            {
-
-                return false;
-            }
-            else
-            {
-                return true;
-            }*/
-
             return true;
         }
 

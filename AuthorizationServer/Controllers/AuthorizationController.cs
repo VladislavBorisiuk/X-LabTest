@@ -38,7 +38,7 @@ namespace AuthorizationServer.Controllers
             _authorizationManager = authorizationManager;
         }
 
-        [HttpPost("~/connect/Authorize")]
+        [HttpPost("~/connect/token")]
         public async Task<IActionResult> Exchange()
         {
             var request = HttpContext.GetOpenIddictServerRequest() ??
@@ -55,7 +55,6 @@ namespace AuthorizationServer.Controllers
 
             throw new InvalidOperationException("The specified grant type is not supported.");
         }
-        [HttpPost("~/connect/token")]
         public async Task<IActionResult> HandlePasswordGrantTypeAsync()
         {
             var request = HttpContext.GetOpenIddictServerRequest() ??

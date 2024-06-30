@@ -11,6 +11,8 @@ namespace XLabApp.Services.Interfaces
 
         public async Task<string> RegisterUserAsync(PersonDTO model) {  throw new NotImplementedException(); }
 
-        public async Task<string> AuthorizeUserAsync(PersonDTO model) { throw new NotImplementedException(); }
+        public async Task<TokenResponse> AuthorizeUserAsync(PersonDTO model) { throw new NotImplementedException(); }
+
+        public async Task<TokenResponse> RefreshAccessTokenAsync(string refreshToken) { throw new NotImplementedException(); }
     }
 }

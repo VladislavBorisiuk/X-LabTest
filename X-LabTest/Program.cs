@@ -42,8 +42,13 @@ builder.Services.AddOpenIddict()
                .EnableTokenEndpointPassthrough();
         options.AddDevelopmentSigningCertificate();
 
+        options.RegisterScopes("offline_access");
+
         options.AddEncryptionKey(new SymmetricSecurityKey(
            Convert.FromBase64String("DRjd/GnduI3Efzen9V9BvbNUfc/VKgXltV7Kbk9sMkY=")));
+
+        options.SetAccessTokenLifetime(TimeSpan.FromSeconds(30)); 
+        options.SetRefreshTokenLifetime(TimeSpan.FromDays(7));
     })
     .AddValidation(options =>
     {
@@ -71,10 +76,12 @@ builder.Services.AddSwaggerGen(c =>
         {
             Password = new OpenApiOAuthFlow
             {
+                AuthorizationUrl = new Uri("https://localhost:7168/connect/Authorize"),
                 TokenUrl = new Uri("https://localhost:7168/connect/token"),
                 Scopes = new Dictionary<string, string>
                 {
-                    { "api1", "resource server scope" }
+                    { "api1", "resource server scope" },
+                    {"offline_access", "offline_access" }
                 }
             }
         }
@@ -137,7 +144,6 @@ app.UseSwagger();
 app.UseSwaggerUI(c =>
 {
     c.OAuthClientId("web-client");
-    c.OAuthClientSecret("901564A5-E7FE-42CB-B18D-61EF6A8F3654");
 });
 
 app.UseHttpsRedirection();

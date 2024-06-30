@@ -5,6 +5,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Windows;
 using XLabApp.Models;
 using XLabApp.Services.Interfaces;
 
@@ -50,53 +51,76 @@ namespace XLabApp.Services
             }
         }
 
-        public async Task<string> AuthorizeUserAsync(PersonDTO model)
+        public async Task<TokenResponse> AuthorizeUserAsync(PersonDTO model)
         {
             try
             {
-                var tokenEndpoint = "https://localhost:7168/connect/token";
-
+               
                 var requestBody = new Dictionary<string, string>
                 {
                     { "grant_type", "password" },
                     { "username", model.Login },
                     { "password", model.Password },
                     { "client_id", "web-client" },
-                    { "client_secret", "901564A5-E7FE-42CB-B18D-61EF6A8F3654" },
-                    { "scope", "api1" }
+                    { "scope", "api1 offline_access" }
                 };
 
                 var requestContent = new FormUrlEncodedContent(requestBody);
-
-                var request = new HttpRequestMessage(HttpMethod.Post, tokenEndpoint)
-                {
-                    Content = requestContent
-                };
-
-                var response = await _authHttpClient.SendAsync(request);
+                
+                var response = await _authHttpClient.PostAsync("/connect/token", requestContent);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
 
-                    // Парсим JSON-ответ
-                    var tokenResponse = JsonSerializer.Deserialize<TokenResponse>(responseContent);
-
-                    // Извлекаем токен доступа (access_token)
-                    string accessToken = tokenResponse.access_token;
-
-                    return accessToken;
+                    return JsonSerializer.Deserialize<TokenResponse>(responseContent);
                 }
                 else
                 {
-                    return $"Error: {response.StatusCode}";
+                    MessageBox.Show("StatusCode is unsuccess");
+                    return null;
                 }
             }
             catch (Exception ex)
             {
-                return $"Error: {ex.Message}";
+                MessageBox.Show($"Error: {ex.Message}");
+                return null;
             }
         }
+
+        public async Task<TokenResponse> RefreshAccessTokenAsync(string refreshToken)
+        {
+            try
+            {
+                var requestBody = new Dictionary<string, string>
+        {
+            { "grant_type", "refresh_token" },
+            { "refresh_token", refreshToken },
+            { "client_id", "web-client" },
+            { "scope", "api1 offline_access" }
+        };
+
+                var requestContent = new FormUrlEncodedContent(requestBody);
+                var response = await _authHttpClient.PostAsync("/connect/token", requestContent);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var responseContent = await response.Content.ReadAsStringAsync();
+                    return JsonSerializer.Deserialize<TokenResponse>(responseContent);
+                }
+                else
+                {
+                    MessageBox.Show("StatusCode is unsuccess");
+                    return null;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+                return null;
+            }
+        }
+
 
         public async Task<string> GetUsersAsync(string token)
         {
