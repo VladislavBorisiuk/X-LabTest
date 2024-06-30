@@ -1,13 +1,17 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
+using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows;
 using XLabApp.Models;
 using XLabApp.Services.Interfaces;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace XLabApp.Services
 {
@@ -26,15 +30,10 @@ namespace XLabApp.Services
         {
             try
             {
-                var requestBody = new Dictionary<string, string>
-                {
-                    { "username", model.Login },
-                    { "password", model.Password },
-                };
+                var json = JsonConvert.SerializeObject(model);
+                var requestContent = new StringContent(json, Encoding.UTF8, "application/json");
 
-                var requestContent = new FormUrlEncodedContent(requestBody);
-
-                var response = await _resourceHttpClient.PostAsync("resources/register", requestContent);
+                var response = await _resourceHttpClient.PostAsync("/resources/register", requestContent);
 
                 if (response.IsSuccessStatusCode)
                 {
@@ -42,14 +41,15 @@ namespace XLabApp.Services
                 }
                 else
                 {
-                    return $"Error: {response.StatusCode}";
+                    return $"Ошибка: {response.StatusCode}";
                 }
             }
             catch (Exception ex)
             {
-                return $"Error: {ex.Message}";
+                return $"Ошибка: {ex.Message}";
             }
         }
+
 
         public async Task<TokenResponse> AuthorizeUserAsync(PersonDTO model)
         {

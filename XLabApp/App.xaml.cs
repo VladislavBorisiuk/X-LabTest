@@ -48,20 +48,10 @@ namespace XLabApp
 
         public static void ConfigureServices(HostBuilderContext context, IServiceCollection services)
         {
+            
             services.AddHttpClient("AuthServer", client =>
             {
-                client.BaseAddress = new Uri("http://localhost:7168/");
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-            })
-            .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-            });
-
-            services.AddHttpClient("AuthServer", client =>
-            {
-                client.BaseAddress = new Uri("http://localhost:7168/");
+                client.BaseAddress = new Uri("https://localhost:7168/");
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             })
