@@ -37,7 +37,7 @@ public class ResourceController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] PersonDTO model)
+    public async Task<IActionResult> Register([FromBody] PersonServerDTO model)
     {
         if (ModelState.IsValid)
         {
