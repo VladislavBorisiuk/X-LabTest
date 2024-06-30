@@ -164,19 +164,16 @@ namespace AuthorizationServer.Controllers
                     }));
             }
 
-            // Создание ClaimsIdentity с обязательными claim
             var identity = new ClaimsIdentity(claimsPrincipal.Claims,
                 authenticationType: TokenValidationParameters.DefaultAuthenticationType,
                 nameType: Claims.Name,
                 roleType: Claims.Role);
 
-            // Установка обязательных claim, включая subject
             identity.SetClaim(Claims.Subject, await _userManager.GetUserIdAsync(user))
                     .SetClaim(Claims.Email, await _userManager.GetEmailAsync(user))
                     .SetClaim(Claims.Name, await _userManager.GetUserNameAsync(user))
                     .SetClaims(Claims.Role, new List<string> { "user", "admin" }.ToImmutableArray());
 
-            // Установка scopes и resources
             identity.SetScopes(request.GetScopes());
             identity.SetResources(await _scopeManager.ListResourcesAsync(identity.GetScopes()).ToListAsync());
 
@@ -199,13 +196,10 @@ namespace AuthorizationServer.Controllers
                 type: AuthorizationTypes.Permanent,
                 scopes: identity.GetScopes());
 
-            // Установка authorization ID
             identity.SetAuthorizationId(await _authorizationManager.GetIdAsync(authorization));
 
-            // Установка destinations (если нужно)
             identity.SetDestinations(AuthService.GetDestinations);
 
-            // Возвращаем SignIn с обновленным ClaimsPrincipal
             return SignIn(new ClaimsPrincipal(identity), OpenIddictServerAspNetCoreDefaults.AuthenticationScheme);
         }
 
