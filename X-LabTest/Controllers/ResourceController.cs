@@ -54,7 +54,7 @@ public class ResourceController : ControllerBase
             }
             else
             {
-                return BadRequest(result.Errors);
+                return BadRequest("Пользователь с таким именем уже существует");
             }
         }
         return BadRequest("Переданные на сервер данные не валидны");
