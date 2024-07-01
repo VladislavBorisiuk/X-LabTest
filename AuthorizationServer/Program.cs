@@ -50,6 +50,9 @@ builder.Services.AddOpenIddict()
                .EnableAuthorizationEndpointPassthrough()
                .EnableLogoutEndpointPassthrough()
                .EnableTokenEndpointPassthrough();
+
+        options.SetAccessTokenLifetime(TimeSpan.FromSeconds(30)); 
+        options.SetRefreshTokenLifetime(TimeSpan.FromDays(7));
     })
     .AddValidation(options =>
     {

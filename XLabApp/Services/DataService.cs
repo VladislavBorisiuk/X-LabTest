@@ -41,7 +41,8 @@ namespace XLabApp.Services
                 }
                 else
                 {
-                    return $"Ошибка: {response.StatusCode}";
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    return $"Ошибка: {response.StatusCode} - {errorContent}";
                 }
             }
             catch (Exception ex)
@@ -50,12 +51,10 @@ namespace XLabApp.Services
             }
         }
 
-
         public async Task<TokenResponse> AuthorizeUserAsync(PersonDTO model)
         {
             try
             {
-               
                 var requestBody = new Dictionary<string, string>
                 {
                     { "grant_type", "password" },
@@ -66,24 +65,24 @@ namespace XLabApp.Services
                 };
 
                 var requestContent = new FormUrlEncodedContent(requestBody);
-                
+
                 var response = await _authHttpClient.PostAsync("/connect/token", requestContent);
 
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-
                     return JsonSerializer.Deserialize<TokenResponse>(responseContent);
                 }
                 else
                 {
-                    MessageBox.Show("StatusCode is unsuccess");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    MessageBox.Show($"Ошибка: {response.StatusCode} - {errorContent}");
                     return null;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}");
+                MessageBox.Show($"Ошибка: {ex.Message}");
                 return null;
             }
         }
@@ -93,12 +92,12 @@ namespace XLabApp.Services
             try
             {
                 var requestBody = new Dictionary<string, string>
-        {
-            { "grant_type", "refresh_token" },
-            { "refresh_token", refreshToken },
-            { "client_id", "web-client" },
-            { "scope", "api1 offline_access" }
-        };
+                {
+                    { "grant_type", "refresh_token" },
+                    { "refresh_token", refreshToken },
+                    { "client_id", "web-client" },
+                    { "scope", "api1 offline_access" }
+                };
 
                 var requestContent = new FormUrlEncodedContent(requestBody);
                 var response = await _authHttpClient.PostAsync("/connect/token", requestContent);
@@ -110,19 +109,19 @@ namespace XLabApp.Services
                 }
                 else
                 {
-                    MessageBox.Show("StatusCode is unsuccess");
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    MessageBox.Show($"Ошибка: {response.StatusCode} - {errorContent}");
                     return null;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Error: {ex.Message}");
+                MessageBox.Show($"Ошибка: {ex.Message}");
                 return null;
             }
         }
 
-
-        public async Task<string> GetUsersAsync(string token)
+        public async Task<List<PersonDTO>> GetUsersAsync(string token)
         {
             try
             {
@@ -131,17 +130,22 @@ namespace XLabApp.Services
 
                 if (response.IsSuccessStatusCode)
                 {
-                    return await response.Content.ReadAsStringAsync();
+                    var json = await response.Content.ReadAsStringAsync();
+                    var users = JsonConvert.DeserializeObject<List<PersonDTO>>(json);
+                    return users;
                 }
                 else
                 {
-                    return $"Error: {response.StatusCode}";
+                    var errorContent = await response.Content.ReadAsStringAsync();
+                    throw new HttpRequestException($"Ошибка: {response.StatusCode} - {errorContent}");
                 }
             }
             catch (Exception ex)
             {
-                return $"Error: {ex.Message}";
+                MessageBox.Show("Ошибка при получении пользователя. Токен не корректен или время жизни истекло");
+                throw new Exception($"Ошибка при получении пользователей: {ex.Message}");
             }
         }
+
     }
 }

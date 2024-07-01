@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.Text.RegularExpressions;
+using System.Windows;
 using System.Windows.Input;
 using XLabApp.Infrastructure.Commands;
 using XLabApp.Models;
@@ -38,18 +39,60 @@ namespace XLabApp.ViewModels
         public string TokenData { get => _TokenData; set => Set(ref _TokenData, value); }
 
         private string _TokenData = "";
-        
-        public string Login { get => _Login; set => Set(ref _Login, value); }
+
+        public string Login
+        {
+            get => _Login;
+            set
+            {
+                if (!IsValidLogin(value))
+                {
+                    MessageBox.Show("Login должен содержать только буквы английского алфавита и символы.");
+                    return;
+                }
+                Set(ref _Login, value);
+            }
+        }
 
         private string _Login = "";
 
-        public string Password { get => _Password; set => Set(ref _Password, value); }
+        private bool IsValidLogin(string login)
+        {
+            if (string.IsNullOrWhiteSpace(login)) return false;
+            var regex = new Regex("^[a-zA-Z0-9_@.-]+$");
+            return regex.IsMatch(login);
+        }
 
         private string _Password = "";
-        
-        public string Users { get => _Users; set => Set(ref _Users, value); }
 
-        private string _Users = "";
+        public string Password
+        {
+            get => _Password;
+            set
+            {
+                if (!IsValidPassword(value))
+                {
+                    MessageBox.Show("Пароль должен быть длиной не менее 8 символов и содержать как минимум одну заглавную букву, одну строчную букву и одну цифру. Поддерживается только английский алфовит", "Неправильный формат пароля", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+                Set(ref _Password, value);
+            }
+        }
+
+        private bool IsValidPassword(string password)
+        {
+            if (string.IsNullOrWhiteSpace(password)) return false;
+            if (password.Length < 8) return false;
+            if (!password.Any(char.IsUpper)) return false;
+            if (!password.Any(char.IsLower)) return false;
+            if (!password.Any(char.IsDigit)) return false;
+            var regex = new Regex("^[a-zA-Z0-9!@#$%^&*()_+\\-=\\[\\]{};':\"\\\\|,.<>\\/?`~]+$");
+            return regex.IsMatch(password);
+        }
+ 
+        public List<PersonDTO> Users { get => _Users; set => Set(ref _Users, value); }
+
+        private List<PersonDTO> _Users = new List<PersonDTO>();
 
         #region Пользователи
         private ICommand _GetUsersCommand;
@@ -64,7 +107,11 @@ namespace XLabApp.ViewModels
             if (p is string userId && !string.IsNullOrEmpty(userId))
             {
                 Users = await _DataService.GetUsersAsync(userId);
-                MessageBox.Show(Users);
+                MessageBox.Show("Ресурсы успешно получены");
+            }
+            else
+            {
+                MessageBox.Show("Пользователь не авторизован");
             }
         }
 
@@ -143,7 +190,13 @@ namespace XLabApp.ViewModels
                 if(token != null)
                 {
                     _TokenResponse = token;
+                    OnPropertyChanged(nameof(RefreshToken));
+                    OnPropertyChanged(nameof(CurrentToken));
                 }
+            }
+            else
+            {
+                MessageBox.Show("Отсутствует рефреш токен");
             }
         }
 

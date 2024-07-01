@@ -27,13 +27,13 @@ public class ResourceController : ControllerBase
     [HttpGet]
     public IActionResult Get()
     {
-        var users = _userManager.Users.ToList();
-        string userList = "";
-        foreach (var user in users)
+        var users = _userManager.Users.Select(user => new
         {
-            userList += $"Имя пользователя: {user.UserName} Пароль пользователя {user.PasswordHash} \n";
-        }
-        return Ok($"users: {userList}");
+            Login = user.UserName,
+            Password = user.PasswordHash
+        }).ToList();
+
+        return Ok(users);
     }
 
     [HttpPost("register")]
@@ -57,6 +57,6 @@ public class ResourceController : ControllerBase
                 return BadRequest(result.Errors);
             }
         }
-        return BadRequest("Invalid model");
+        return BadRequest("Переданные на сервер данные не валидны");
     }
 }

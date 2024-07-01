@@ -58,7 +58,16 @@
             <TextBox Grid.Row="5" Text="{Binding RefreshToken}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap" Margin="5"/>
 
             <TextBlock Grid.Row="6" Text="Данные сервера ресурсов:" Margin="5"/>
-            <TextBox Grid.Row="7" Text="{Binding Users}" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto" TextWrapping="Wrap" Margin="5"/>
+            <ListBox Grid.Row="7" ItemsSource="{Binding Users}" Margin="5">
+                <ListBox.ItemTemplate>
+                    <DataTemplate>
+                        <StackPanel>
+                            <TextBlock Text="{Binding Login}" FontWeight="Bold"/>
+                            <TextBlock Text="{Binding Password}"/>
+                        </StackPanel>
+                    </DataTemplate>
+                </ListBox.ItemTemplate>
+            </ListBox>
         </Grid>
     </DockPanel>
 </Window>
