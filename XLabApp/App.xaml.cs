@@ -62,7 +62,7 @@ namespace XLabApp
 
             services.AddHttpClient("ResourceServer", client =>
             {
-                client.BaseAddress = new Uri("http://localhost:7169/");
+                client.BaseAddress = new Uri("https://localhost:7169/");
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
             })

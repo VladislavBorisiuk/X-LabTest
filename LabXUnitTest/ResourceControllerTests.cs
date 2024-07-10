@@ -172,7 +172,7 @@ namespace LabXUnitTest
                 )
                 .ReturnsAsync(responseMessage);
 
-            var result = await _dataService.GetUsersAsync(token);
+            var result = await _dataService.GetUsersAsync();
 
             Assert.NotNull(result);
             Assert.Equal(2, result.Count);

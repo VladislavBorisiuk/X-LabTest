@@ -79,6 +79,17 @@ namespace XLabApp.ViewModels
             }
         }
 
+        public string ODataCode
+        {
+            get => _ODataCode;
+            set
+            {
+                Set(ref _ODataCode, value);
+            }
+        }
+
+        private string _ODataCode = "";
+
         private bool IsValidPassword(string password)
         {
             if (string.IsNullOrWhiteSpace(password)) return false;
@@ -106,7 +117,7 @@ namespace XLabApp.ViewModels
         {
             if (p is string userId && !string.IsNullOrEmpty(userId))
             {
-                Users = await _DataService.GetUsersAsync();
+                Users = await _DataService.GetUsersAsync(ODataCode);
                 MessageBox.Show("Ресурсы успешно получены");
                 _TokenResponse = _DataService.CurrentToken;
                 OnPropertyChanged(nameof(RefreshToken));

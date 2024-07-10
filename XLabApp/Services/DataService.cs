@@ -127,13 +127,22 @@ namespace XLabApp.Services
             }
         }
 
-        public async Task<List<PersonDTO>> GetUsersAsync()
+        public async Task<List<PersonDTO>> GetUsersAsync(string? OdataCode)
         {
             await EnsureTokenAsync();
             try
             {
                 _resourceHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CurrentToken.access_token);
-                HttpResponseMessage response = await _resourceHttpClient.GetAsync("resources");
+                HttpResponseMessage response = new();
+                if (!string.IsNullOrEmpty(OdataCode))
+                {
+                    response = await _resourceHttpClient.GetAsync($"resources?{OdataCode}");
+                }
+                else
+                {
+                    response = await _resourceHttpClient.GetAsync("resources");
+                }
+                
 
                 if (response.IsSuccessStatusCode)
                 {

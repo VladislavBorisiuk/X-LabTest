@@ -46,9 +46,11 @@
 
             <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" Margin="5">
                 <TextBlock Text="Логин:" VerticalAlignment="Center" Margin="5"/>
-                <TextBox Width="200" Text="{Binding Login}" Margin="5"/>
+                <TextBox Width="Auto" MinWidth="100" Text="{Binding Login}" Margin="5"/>
                 <TextBlock Text="Пароль:" VerticalAlignment="Center" Margin="5"/>
-                <TextBox Width="200" Text="{Binding Password}" Margin="5"/>
+                <TextBox Width="Auto" MinWidth="100" Text="{Binding Password}" Margin="5"/>
+                <TextBlock Text="OData Запрос:" VerticalAlignment="Center" Margin="5"/>
+                <TextBox Width="Auto" MinWidth="100" Text="{Binding ODataCode}" Margin="5"/>
             </StackPanel>
 
             <TextBlock Grid.Row="2" Text="Текущий токен:" Margin="5"/>

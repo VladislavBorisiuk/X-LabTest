@@ -8,7 +8,7 @@ namespace XLabApp.Services.Interfaces
     internal interface IDataService
     {
         public TokenResponse CurrentToken { get; set; }
-        public async Task<List<PersonDTO>> GetUsersAsync() { throw new NotImplementedException(); }
+        public async Task<List<PersonDTO>> GetUsersAsync(string? ODataCode) { throw new NotImplementedException(); }
 
         public async Task<string> RegisterUserAsync(PersonDTO model) {  throw new NotImplementedException(); }
 

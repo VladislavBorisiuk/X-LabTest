@@ -10,10 +10,12 @@ using X_LabTest.Models;
 using System.Threading.Tasks;
 using System.Linq;
 using OpenIddict.Validation.AspNetCore;
+using Microsoft.AspNetCore.OData.Routing.Controllers;
+using Microsoft.AspNetCore.OData.Query;
 
 [ApiController]
 [Route("resources")]
-public class ResourceController : ControllerBase
+public class ResourceController : ODataController
 {
     private readonly UserManager<Person> _userManager;
 
@@ -22,7 +24,7 @@ public class ResourceController : ControllerBase
     {
         _userManager = userManager;
     }
-
+    [EnableQuery]
     [Authorize(AuthenticationSchemes = OpenIddictValidationAspNetCoreDefaults.AuthenticationScheme)]
     [HttpGet]
     public IActionResult Get()
