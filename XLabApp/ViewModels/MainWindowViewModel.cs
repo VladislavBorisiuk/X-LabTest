@@ -106,8 +106,11 @@ namespace XLabApp.ViewModels
         {
             if (p is string userId && !string.IsNullOrEmpty(userId))
             {
-                Users = await _DataService.GetUsersAsync(userId);
+                Users = await _DataService.GetUsersAsync();
                 MessageBox.Show("Ресурсы успешно получены");
+                _TokenResponse = _DataService.CurrentToken;
+                OnPropertyChanged(nameof(RefreshToken));
+                OnPropertyChanged(nameof(CurrentToken));
             }
             else
             {

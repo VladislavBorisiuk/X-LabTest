@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace XLabApp.Models
+﻿namespace XLabApp.Models
 {
     public class TokenResponse
     {
@@ -12,5 +6,6 @@ namespace XLabApp.Models
         public string token_type { get; set; }
         public int expires_in { get; set; }
         public string refresh_token { get; set; }
+        public DateTime? ExpiryTime { get; set; }
     }
 }

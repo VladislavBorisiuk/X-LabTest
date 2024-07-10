@@ -19,6 +19,8 @@ namespace XLabApp.Services
     {
         private readonly HttpClient _authHttpClient;
         private readonly HttpClient _resourceHttpClient;
+        private TokenResponse _currentToken;
+        public TokenResponse CurrentToken { get => _currentToken; set => _currentToken = value; }
 
         public DataService(IHttpClientFactory httpClientFactory)
         {
@@ -71,7 +73,9 @@ namespace XLabApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<TokenResponse>(responseContent);
+                    CurrentToken = JsonSerializer.Deserialize<TokenResponse>(responseContent);
+                    CurrentToken.ExpiryTime = DateTime.UtcNow.AddSeconds(CurrentToken.expires_in);
+                    return CurrentToken;
                 }
                 else
                 {
@@ -105,7 +109,9 @@ namespace XLabApp.Services
                 if (response.IsSuccessStatusCode)
                 {
                     var responseContent = await response.Content.ReadAsStringAsync();
-                    return JsonSerializer.Deserialize<TokenResponse>(responseContent);
+                    CurrentToken = JsonSerializer.Deserialize<TokenResponse>(responseContent);
+                    CurrentToken.ExpiryTime = DateTime.UtcNow.AddSeconds(_currentToken.expires_in);
+                    return CurrentToken;
                 }
                 else
                 {
@@ -121,11 +127,12 @@ namespace XLabApp.Services
             }
         }
 
-        public async Task<List<PersonDTO>> GetUsersAsync(string token)
+        public async Task<List<PersonDTO>> GetUsersAsync()
         {
+            await EnsureTokenAsync();
             try
             {
-                _resourceHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+                _resourceHttpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", CurrentToken.access_token);
                 HttpResponseMessage response = await _resourceHttpClient.GetAsync("resources");
 
                 if (response.IsSuccessStatusCode)
@@ -147,5 +154,12 @@ namespace XLabApp.Services
             }
         }
 
+        private async Task EnsureTokenAsync()
+        {
+            if (CurrentToken == null || CurrentToken.ExpiryTime <= DateTime.UtcNow)
+            {
+                CurrentToken = await RefreshAccessTokenAsync(CurrentToken.refresh_token);
+            }
+        }
     }
 }
